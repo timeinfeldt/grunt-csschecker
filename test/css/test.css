@@ -1,0 +1,45 @@
+.used-class {
+    background: black;
+    color: #fff;
+    font-weight: normal;
+}
+
+.used-class-extra {
+    background: black;
+    color: #fff;
+    font-weight: normal;
+}
+
+.defined-once-used-once {
+    background: black;
+    color: #fff;
+    font-weight: normal;
+}
+
+.not-used-class {
+    background: black;
+    color: #fff;
+    font-weight: normal;
+}
+
+.nesting .five .levels .deep .used-class {
+    background: black;
+    color: #fff;
+    font-weight: normal;
+}
+
+.nesting .five .levels .deep .not-used-class {
+    background: black;
+    color: #fff;
+    font-weight: normal;
+}
+
+.action-dislike {
+    background: black;
+    color: #fff;
+    font-weight: normal;
+}
+
+.single-rule {
+    background: black;
+}
