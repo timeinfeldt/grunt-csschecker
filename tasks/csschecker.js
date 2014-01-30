@@ -31,9 +31,15 @@ module.exports = function (grunt) {
             self = this;
 
         function getFilesFromPath(patterns, callback, options) {
+            if(!patterns) {
+                grunt.fail.warn('No source file paths found.');
+            }
             var filesToBeAnalysed = [];
             async.eachSeries(patterns, function (f, next) {
                 glob(f, options, function (er, files) {
+                    if(files.length == 0) {
+                        grunt.fail.warn('No files matching "' + f + '" found.');
+                    }
                     for (var j = 0; j < files.length; j++) {
                         if (filesToBeAnalysed.indexOf(files[j]) < 0) {
                             filesToBeAnalysed.push(files[j]);

@@ -14,16 +14,15 @@ module.exports = function (grunt) {
     grunt.initConfig({
         csschecker : {
             dev : {
+                options : {
+                    checkstyle : 'out/checkstyle.xml'
+                },
                 cssSrc : [
                     'test/css/test.css'
                 ],
                 codeSrc : [
                     'test/code/test.html'
                 ],
-                options : {
-                    verbose : false,
-                    checkstyle : 'out/checkstyle.xml'
-                },
                 checks : {
                     selectors : {
                         selectorLengthCheck : {
@@ -70,5 +69,5 @@ module.exports = function (grunt) {
     grunt.registerTask('test', ['csschecker', 'nodeunit']);
 
     // By default, lint and run all tests.
-    grunt.registerTask('default', ['jshint', 'csschecker:dev']);
+    grunt.registerTask('default', ['jshint', 'csschecker']);
 };
