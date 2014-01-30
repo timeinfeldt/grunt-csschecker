@@ -7,8 +7,8 @@
  */
 
 'use strict';
-var CSSChecker = require('../lib/CSSChecker'),
-    CodeChecker = require('../lib/CodeChecker'),
+var CSSChecker = require('../lib/csschecker'),
+    CodeChecker = require('../lib/codechecker'),
     glob = require('glob'),
     fs = require('fs'),
     checks = require('../lib/checks/checks.js'),
@@ -48,7 +48,7 @@ module.exports = function (grunt) {
 
         function runChecks() {
             var report = {
-                types: {}
+                types : {}
             };
 
             for (var type in checksConfig) {
@@ -70,9 +70,9 @@ module.exports = function (grunt) {
                                 opts = checksConfig[type][check].options,
                                 result = checks[check](d, opts);
 
-                            if(result){
+                            if (result) {
                                 report.types[type].push({
-                                    message:result
+                                    message : result
                                 });
                             }
                         }
