@@ -7,28 +7,26 @@
  */
 
 'use strict';
-var CSSChecker = require('../lib/csschecker'),
-    CodeChecker = require('../lib/codechecker'),
+var CSSChecker = require('../lib/parsers/csschecker'),
+    CodeChecker = require('../lib/parsers/codechecker'),
     glob = require('glob'),
     fs = require('fs'),
     checks = require('../lib/checks/checks.js'),
     async = require('async'),
-    reporters = require('../lib/reporters');
+    reporters = require('../lib/reporters'),
+    Collector = require('../lib/collectors/collector');
 
 module.exports = function (grunt) {
 
-    // Please see the Grunt documentation for more information regarding task
-    // creation: http://gruntjs.com/creating-tasks
-
     grunt.registerMultiTask('csschecker', 'Checks your CSS', function () {
-
         var done = this.async(),
             checksConfig = this.data.checks,
             data = {
                 selectors : {},
                 classes : {}
             },
-            self = this;
+            self = this,
+            collector = new Collector(data);
 
         function getFilesFromPath(patterns, callback, options) {
             if (!patterns) {
@@ -87,14 +85,15 @@ module.exports = function (grunt) {
                     }
                 }
             }
-            grunt.log.ok(JSON.stringify(data, null, 4));
-            //grunt.file.write(self.data.options.checkstyle, reporters.checkstyle(report));
+            //grunt.log.ok(JSON.stringify(data, null, 4));
+            grunt.file.write(self.data.options.checkstyle, reporters.checkstyle(report));
         }
 
         function analyseFiles(files, Analyser, callback) {
             grunt.log.subhead('Running ' + Analyser.name + ' (' + files.length + ' files)');
             var analyser = new Analyser();
             async.eachSeries(files, function (path, next) {
+
                 if (!grunt.file.exists(path)) {
                     grunt.log.warn('File "' + path + '" not found.');
                     next();
@@ -102,12 +101,11 @@ module.exports = function (grunt) {
 
                 grunt.log.verbose.writeln('Checking file: ' + path);
 
-                analyser.check(path, data, function () {
+                analyser.run(path, collector, function () {
                     grunt.log.verbose.ok('Finished ' + path);
                     next();
                 });
             }, function () {
-                grunt.log.writeln('done');
                 callback();
             });
         }
@@ -115,16 +113,12 @@ module.exports = function (grunt) {
         function run() {
             async.series([
                 function (callback) {
-                    grunt.log.writeln('getting css files');
                     getFilesFromPath(self.data.cssSrc, function (files) {
-                        grunt.log.writeln('analysing css files');
                         analyseFiles(files, CSSChecker, callback);
                     });
                 },
                 function (callback) {
-                    grunt.log.writeln('getting code files');
                     getFilesFromPath(self.data.codeSrc, function (files) {
-                        grunt.log.writeln('analysing code files');
                         analyseFiles(files, CodeChecker, callback);
                     });
                 }
