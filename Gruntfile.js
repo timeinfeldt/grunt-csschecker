@@ -15,7 +15,8 @@ module.exports = function (grunt) {
         csschecker : {
             dev : {
                 options : {
-                    checkstyle : 'out/checkstyle.xml'
+                    checkstyle : 'out/checkstyle.xml',
+                    plaintext : 'out/report.txt'
                 },
                 cssSrc : [
                     'test/css/test.css'
@@ -34,6 +35,7 @@ module.exports = function (grunt) {
                     classes : {
                         classUsageCheck : {
                             options : {
+                                reportAll : true,
                                 minUsage : 2
                             }
                         }

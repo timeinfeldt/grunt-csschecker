@@ -13,6 +13,7 @@ var CSSChecker = require('../lib/parsers/csschecker'),
     fs = require('fs'),
     checks = require('../lib/checks/checks.js'),
     async = require('async'),
+    moment = require('moment'),
     reporters = require('../lib/reporters'),
     Collector = require('../lib/collectors/collector');
 
@@ -26,7 +27,8 @@ module.exports = function (grunt) {
                 classes : {}
             },
             self = this,
-            collector = new Collector(data);
+            collector = new Collector(data),
+            start = moment();
 
         function getFilesFromPath(patterns, callback, options) {
             if (!patterns) {
@@ -63,19 +65,22 @@ module.exports = function (grunt) {
 
                 var checkGroupData = data[type];
 
-                report.types[type] = [];
+                report.types[type] = {};
 
                 for (var check in checksConfig[type]) {
                     grunt.log.subhead('Running ' + check);
 
                     if (checks.hasOwnProperty(check)) {
+
+                        report.types[type][check] = [];
+
                         for (var key in checkGroupData) {
                             var d = checkGroupData[key],
                                 opts = checksConfig[type][check].options,
                                 result = checks[check](d, opts);
 
                             if (result) {
-                                report.types[type].push({
+                                report.types[type][check].push({
                                     message : result
                                 });
                             }
@@ -85,29 +90,30 @@ module.exports = function (grunt) {
                     }
                 }
             }
-            //grunt.log.ok(JSON.stringify(data, null, 4));
             grunt.file.write(self.data.options.checkstyle, reporters.checkstyle(report));
+            grunt.file.write(self.data.options.plaintext, reporters.plaintext(report));
+            //grunt.file.write(self.data.options.plaintext, JSON.stringify(report, null, 4));
         }
 
         function analyseFiles(files, Analyser, callback) {
             grunt.log.subhead('Running ' + Analyser.name + ' (' + files.length + ' files)');
             var analyser = new Analyser();
-            async.eachSeries(files, function (path, next) {
 
+            files.forEach(function (path) {
                 if (!grunt.file.exists(path)) {
                     grunt.log.warn('File "' + path + '" not found.');
-                    next();
+                    return;
                 }
 
                 grunt.log.verbose.writeln('Checking file: ' + path);
 
                 analyser.run(path, collector, function () {
                     grunt.log.verbose.ok('Finished ' + path);
-                    next();
                 });
-            }, function () {
-                callback();
+
             });
+
+            callback();
         }
 
         function run() {
@@ -127,10 +133,10 @@ module.exports = function (grunt) {
                     if (!err) {
                         runChecks();
                         done();
+                        grunt.log.ok('Done after ' + moment().diff(start, 'seconds', true) + ' seconds.');
                     }
                 });
         }
-
         run();
     });
 };
