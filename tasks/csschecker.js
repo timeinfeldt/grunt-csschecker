@@ -24,7 +24,8 @@ module.exports = function (grunt) {
             checksConfig = this.data.checks,
             data = {
                 selectors : {},
-                classes : {}
+                classes : {},
+                declarations : {}
             },
             self = this,
             collector = new Collector(data),
@@ -92,7 +93,7 @@ module.exports = function (grunt) {
             }
             grunt.file.write(self.data.options.checkstyle, reporters.checkstyle(report));
             grunt.file.write(self.data.options.plaintext, reporters.plaintext(report));
-            //grunt.file.write(self.data.options.plaintext, JSON.stringify(report, null, 4));
+            //grunt.file.write(self.data.options.plaintext, JSON.stringify(data, null, 4));
         }
 
         function analyseFiles(files, Analyser, callback) {
@@ -137,6 +138,7 @@ module.exports = function (grunt) {
                     }
                 });
         }
+
         run();
     });
 };

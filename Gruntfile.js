@@ -35,8 +35,21 @@ module.exports = function (grunt) {
                     classes : {
                         classUsageCheck : {
                             options : {
-                                reportAll : true,
-                                minUsage : 2
+                                reportAll : false,
+                                minUsage : 3
+                            }
+                        },
+                        classNoUsageCheck : {
+                            options : {}
+                        }
+                    },
+                    declarations : {
+                        declarationsDefinitionsCheck : {
+                            options : {
+                                whiteList : [
+                                    'background',
+                                    'color'
+                                ]
                             }
                         }
                     }
