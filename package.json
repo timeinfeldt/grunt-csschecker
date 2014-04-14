@@ -1,7 +1,7 @@
 {
     "name" : "grunt-csschecker",
     "description" : "Perform checks on your CSS and its interaction with other source files in your project.",
-    "version" : "0.2.0",
+    "version" : "0.2.1",
     "homepage" : "https://github.com/timeinfeldt/grunt-csschecker",
     "author" : {
         "name" : "Tim Einfeldt",
