@@ -91,10 +91,10 @@ module.exports = function(grunt) {
                     }
                 }
             }
-            if (self.data.options.hasOwnProperty(checkstyle)) {
+            if (self.data.options.checkstyle) {
                 grunt.file.write(self.data.options.checkstyle, reporters.checkstyle(report));
             }
-            if (self.data.options.hasOwnProperty(plaintext)) {
+            if (self.data.options.plaintext) {
                 grunt.file.write(self.data.options.plaintext, reporters.plaintext(report));
             }
             if (self.data.options.debug) {
