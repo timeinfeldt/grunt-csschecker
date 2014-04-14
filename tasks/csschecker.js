@@ -17,15 +17,15 @@ var CSSChecker = require('../lib/parsers/csschecker'),
     reporters = require('../lib/reporters'),
     Collector = require('../lib/collectors/collector');
 
-module.exports = function (grunt) {
+module.exports = function(grunt) {
 
-    grunt.registerMultiTask('csschecker', 'Checks your CSS', function () {
+    grunt.registerMultiTask('csschecker', 'Checks your CSS', function() {
         var done = this.async(),
             checksConfig = this.data.checks,
             data = {
-                selectors : {},
-                classes : {},
-                declarations : {}
+                selectors: {},
+                classes: {},
+                declarations: {}
             },
             self = this,
             collector = new Collector(data),
@@ -36,8 +36,8 @@ module.exports = function (grunt) {
                 grunt.fail.warn('No source file paths found.');
             }
             var filesToBeAnalysed = [];
-            async.eachSeries(patterns, function (f, next) {
-                glob(f, options, function (er, files) {
+            async.eachSeries(patterns, function(f, next) {
+                glob(f, options, function(er, files) {
                     if (files.length === 0) {
                         grunt.fail.warn('No files matching "' + f + '" found.');
                     }
@@ -48,14 +48,14 @@ module.exports = function (grunt) {
                     }
                     next();
                 });
-            }, function () {
+            }, function() {
                 callback(filesToBeAnalysed);
             });
         }
 
         function runChecks() {
             var report = {
-                types : {}
+                types: {}
             };
 
             for (var type in checksConfig) {
@@ -82,7 +82,7 @@ module.exports = function (grunt) {
 
                             if (result) {
                                 report.types[type][check].push({
-                                    message : result
+                                    message: result
                                 });
                             }
                         }
@@ -91,16 +91,22 @@ module.exports = function (grunt) {
                     }
                 }
             }
-            grunt.file.write(self.data.options.checkstyle, reporters.checkstyle(report));
-            grunt.file.write(self.data.options.plaintext, reporters.plaintext(report));
-            //grunt.file.write(self.data.options.plaintext, JSON.stringify(data, null, 4));
+            if (self.data.options.hasOwnProperty(checkstyle)) {
+                grunt.file.write(self.data.options.checkstyle, reporters.checkstyle(report));
+            }
+            if (self.data.options.hasOwnProperty(plaintext)) {
+                grunt.file.write(self.data.options.plaintext, reporters.plaintext(report));
+            }
+            if (self.data.options.debug) {
+                grunt.file.write(self.data.options.plaintext + '-debug', JSON.stringify(data, null, 4));
+            }
         }
 
         function analyseFiles(files, Analyser, callback) {
             grunt.log.subhead('Running ' + Analyser.name + ' (' + files.length + ' files)');
             var analyser = new Analyser();
 
-            files.forEach(function (path) {
+            files.forEach(function(path) {
                 if (!grunt.file.exists(path)) {
                     grunt.log.warn('File "' + path + '" not found.');
                     return;
@@ -108,7 +114,7 @@ module.exports = function (grunt) {
 
                 grunt.log.verbose.writeln('Checking file: ' + path);
 
-                analyser.run(path, collector, function () {
+                analyser.run(path, collector, function() {
                     grunt.log.verbose.ok('Finished ' + path);
                 });
 
@@ -119,18 +125,18 @@ module.exports = function (grunt) {
 
         function run() {
             async.series([
-                function (callback) {
-                    getFilesFromPath(self.data.cssSrc, function (files) {
+                function(callback) {
+                    getFilesFromPath(self.data.cssSrc, function(files) {
                         analyseFiles(files, CSSChecker, callback);
                     });
                 },
-                function (callback) {
-                    getFilesFromPath(self.data.codeSrc, function (files) {
+                function(callback) {
+                    getFilesFromPath(self.data.codeSrc, function(files) {
                         analyseFiles(files, CodeChecker, callback);
                     });
                 }
             ],
-                function (err) {
+                function(err) {
                     if (!err) {
                         runChecks();
                         done();
