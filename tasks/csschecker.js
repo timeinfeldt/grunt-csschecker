@@ -59,7 +59,6 @@ module.exports = function(grunt) {
             };
 
             for (var type in checksConfig) {
-
                 if (!data.hasOwnProperty(type)) {
                     grunt.fail.warn('No data for ' + type + ' checks.');
                 }
