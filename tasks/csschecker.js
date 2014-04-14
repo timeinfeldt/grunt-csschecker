@@ -13,7 +13,6 @@ var CSSChecker = require('../lib/parsers/csschecker'),
     fs = require('fs'),
     checks = require('../lib/checks/checks.js'),
     async = require('async'),
-    moment = require('moment'),
     reporters = require('../lib/reporters'),
     Collector = require('../lib/collectors/collector');
 
@@ -28,8 +27,7 @@ module.exports = function(grunt) {
                 declarations: {}
             },
             self = this,
-            collector = new Collector(data),
-            start = moment();
+            collector = new Collector(data);
 
         function getFilesFromPath(patterns, callback, options) {
             if (!patterns) {
@@ -139,7 +137,6 @@ module.exports = function(grunt) {
                     if (!err) {
                         runChecks();
                         done();
-                        grunt.log.ok('Done after ' + moment().diff(start, 'seconds', true) + ' seconds.');
                     }
                 });
         }
