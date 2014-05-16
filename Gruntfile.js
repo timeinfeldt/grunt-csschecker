@@ -8,46 +8,46 @@
 
 'use strict';
 
-module.exports = function(grunt) {
+module.exports = function (grunt) {
 
     // Project configuration.
     grunt.initConfig({
-        csschecker: {
-            dev: {
-                options: {
-                    checkstyle: 'out/checkstyle.xml',
-                    plaintext: 'out/report.txt',
-                    debug: false
+        csschecker : {
+            dev : {
+                options : {
+                    json : 'out/report.json',
+                    plaintext : 'out/report.txt',
+                    checkstyle : 'out/checkstyle.xml'
                 },
-                cssSrc: [
+                cssSrc : [
                     'test/css/test.css'
                 ],
-                codeSrc: [
+                codeSrc : [
                     'test/code/test.html'
                 ],
-                checks: {
-                    selectors: {
-                        selectorLengthCheck: {
-                            options: {
-                                maxLength: 4
+                checks : {
+                    selectors : {
+                        selectorLengthCheck : {
+                            options : {
+                                maxLength : 4
                             }
                         }
                     },
-                    classes: {
-                        classUsageCheck: {
-                            options: {
-                                reportAll: false,
-                                minUsage: 3
+                    classes : {
+                        classUsageCheck : {
+                            options : {
+                                reportAll : false,
+                                minUsage : 3
                             }
                         },
-                        classNoUsageCheck: {
-                            options: {}
+                        classNoUsageCheck : {
+                            options : {}
                         }
                     },
-                    declarations: {
-                        declarationsDefinitionsCheck: {
-                            options: {
-                                whiteList: [
+                    declarations : {
+                        declarationsDefinitionsCheck : {
+                            options : {
+                                whiteList : [
                                     'background',
                                     'color'
                                 ]
@@ -57,19 +57,19 @@ module.exports = function(grunt) {
                 }
             }
         },
-        jshint: {
-            all: [
+        jshint : {
+            all : [
                 'Gruntfile.js',
                 'tasks/*.js',
                 '<%= nodeunit.tests %>'
             ],
-            options: {
-                jshintrc: '.jshintrc'
+            options : {
+                jshintrc : '.jshintrc'
             }
         },
         // Unit tests.
-        nodeunit: {
-            tests: ['test/*_test.js']
+        nodeunit : {
+            tests : ['test/*_test.js']
         }
     });
 
