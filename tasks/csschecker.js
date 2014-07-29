@@ -10,7 +10,6 @@
 var CSSChecker = require('../lib/parsers/csschecker'),
     CodeChecker = require('../lib/parsers/codechecker'),
     glob = require('glob'),
-    fs = require('fs'),
     checks = require('../lib/checks/checks.js'),
     async = require('async'),
     reporters = require('../lib/reporters'),
@@ -99,6 +98,9 @@ module.exports = function (grunt) {
             }
             if (self.data.options.json) {
                 grunt.file.write(self.data.options.json, reporters.json(data));
+            }
+            if (self.data.options.html) {
+                grunt.file.write(self.data.options.html, reporters.html(data, report));
             }
         }
 

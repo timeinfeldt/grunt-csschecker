@@ -17,7 +17,8 @@ module.exports = function (grunt) {
                 options : {
                     json : 'out/report.json',
                     plaintext : 'out/report.txt',
-                    checkstyle : 'out/checkstyle.xml'
+                    checkstyle : 'out/checkstyle.xml',
+                    html : 'out/report.html'
                 },
                 cssSrc : [
                     'test/css/test.css'
@@ -49,6 +50,47 @@ module.exports = function (grunt) {
                             options : {
                                 whiteList : [
                                     'background',
+                                    'color'
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            rg: {
+                options: {
+                    html : 'out/report.html'
+                },
+                cssSrc: [
+                    '/Users/einfeldt/checkouts/trunk/webroot/styles/**/*.css'
+                ],
+                codeSrc: [
+                    '/Users/einfeldt/checkouts/trunk/webroot/modules/**/*.html'
+                ],
+                checks: {
+                    selectors: {
+                        selectorLengthCheck: {
+                            options: {
+                                maxLength: 4
+                            }
+                        }
+                    },
+                    classes: {
+                        classUsageCheck: {
+                            options: {
+                                reportAll: false,
+                                minUsage: 2
+                            }
+                        },
+                        classNoUsageCheck: {
+                            options: {}
+                        }
+                    },
+                    declarations: {
+                        declarationsDefinitionsCheck: {
+                            options: {
+                                whiteList: [
+                                    'font-size',
                                     'color'
                                 ]
                             }
