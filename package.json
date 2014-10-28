@@ -28,7 +28,7 @@
     },
     "dependencies" : {
         "css-parse" : "~1.x.x",
-        "glob" : "3.x.x",
+        "glob" : "3.x.x || 4.x.x",
         "async" : "0.2.x"
     },
     "devDependencies" : {
