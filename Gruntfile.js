@@ -21,10 +21,10 @@ module.exports = function (grunt) {
                     html : 'out/report.html'
                 },
                 cssSrc : [
-                    'test/css/test.css'
+                    'test/**/*.css'
                 ],
                 codeSrc : [
-                    'test/code/test.html'
+                    'test/**/*.html'
                 ],
                 checks : {
                     selectors : {
@@ -56,47 +56,6 @@ module.exports = function (grunt) {
                         }
                     }
                 }
-            },
-            rg: {
-                options: {
-                    html : 'out/report.html'
-                },
-                cssSrc: [
-                    '/Users/einfeldt/checkouts/trunk/webroot/styles/**/*.css'
-                ],
-                codeSrc: [
-                    '/Users/einfeldt/checkouts/trunk/webroot/modules/**/*.html'
-                ],
-                checks: {
-                    selectors: {
-                        selectorLengthCheck: {
-                            options: {
-                                maxLength: 4
-                            }
-                        }
-                    },
-                    classes: {
-                        classUsageCheck: {
-                            options: {
-                                reportAll: false,
-                                minUsage: 2
-                            }
-                        },
-                        classNoUsageCheck: {
-                            options: {}
-                        }
-                    },
-                    declarations: {
-                        declarationsDefinitionsCheck: {
-                            options: {
-                                whiteList: [
-                                    'font-size',
-                                    'color'
-                                ]
-                            }
-                        }
-                    }
-                }
             }
         },
         jshint : {
@@ -108,10 +67,6 @@ module.exports = function (grunt) {
             options : {
                 jshintrc : '.jshintrc'
             }
-        },
-        // Unit tests.
-        nodeunit : {
-            tests : ['test/*_test.js']
         }
     });
 
@@ -120,7 +75,6 @@ module.exports = function (grunt) {
 
     // These plugins provide necessary tasks.
     grunt.loadNpmTasks('grunt-contrib-jshint');
-    grunt.loadNpmTasks('grunt-contrib-nodeunit');
 
     // Whenever the "test" task is run, first clean the "tmp" dir, then run this
     // plugin's task(s), then test the result.

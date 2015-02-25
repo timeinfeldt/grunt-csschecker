@@ -21,9 +21,9 @@ module.exports = function (grunt) {
         var done = this.async(),
             checksConfig = this.data.checks,
             data = {
-                selectors : {},
-                classes : {},
-                declarations : {}
+                selectors: {},
+                classes: {},
+                declarations: {}
             },
             self = this,
             collector = new Collector(data);
@@ -52,7 +52,7 @@ module.exports = function (grunt) {
 
         function runChecks() {
             var report = {
-                types : {}
+                types: {}
             };
 
             grunt.log.subhead('Running checks on collected data');
@@ -77,7 +77,7 @@ module.exports = function (grunt) {
 
                             if (result) {
                                 report.types[type][check].push({
-                                    message : result
+                                    message: result
                                 });
                             }
                         }
@@ -127,17 +127,17 @@ module.exports = function (grunt) {
 
         function run() {
             async.series([
-                function (callback) {
-                    getFilesFromPath(self.data.cssSrc, function (files) {
-                        analyseFiles(files, CSSChecker, callback);
-                    });
-                },
-                function (callback) {
-                    getFilesFromPath(self.data.codeSrc, function (files) {
-                        analyseFiles(files, CodeChecker, callback);
-                    });
-                }
-            ],
+                    function (callback) {
+                        getFilesFromPath(self.data.cssSrc, function (files) {
+                            analyseFiles(files, CSSChecker, callback);
+                        });
+                    },
+                    function (callback) {
+                        getFilesFromPath(self.data.codeSrc, function (files) {
+                            analyseFiles(files, CodeChecker, callback);
+                        });
+                    }
+                ],
                 function (err) {
                     if (!err) {
                         runChecks();
