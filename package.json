@@ -29,14 +29,14 @@
   "dependencies": {
     "css-parse": "~1.x.x",
     "glob": "3.x.x || 4.x.x",
-    "async": "0.2.x"
+    "async": "0.2.x",
+    "handlebars": "2"
   },
   "devDependencies": {
     "grunt": "~0.4.2",
     "grunt-contrib-jshint": "~0.6.0",
     "grunt-contrib-nodeunit": "~0.2.0",
-    "grunt-debug-task": "^0.1.5",
-    "handlebars": "2"
+    "grunt-debug-task": "^0.1.5"
   },
   "peerDependencies": {
     "grunt": "~0.4.2"
