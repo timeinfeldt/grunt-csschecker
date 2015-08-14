@@ -65,71 +65,69 @@ module.exports = function (grunt) {
             })
             .then(flatten);
 
-        var codeResults = cssResults
-            .then(getCssResultsClassNames)
-            .then(function (classNames) {
-                return getFilesFromPath(self.data.codeSrc)
-                    .then(flatten)
-                    .then(function (paths) {
-                        return Promise.all(paths.map(function (path) {
-                            return codeCheckerParse(path, classNames);
-                        }));
+        cssResults.then(function (results) {
+            return Promise.resolve(getCssResultsClassNames(results))
+                .then(function (classNames) {
+                    return getFilesFromPath(self.data.codeSrc)
+                        .then(flatten)
+                        .then(function (paths) {
+                            return Promise.all(paths.map(function (path) {
+                                return codeCheckerParse(path, classNames);
+                            }));
+                        });
+                })
+                .then(function (classCounts) {
+                    return Object.keys(checksConfig).map(function (checkName) {
+                        var check = checks[checkName],
+                            config = checksConfig[checkName];
+
+                        return check(results, classCounts, config);
                     });
-            });
+                })
+                .then(flatten)
+                .then(function (results) {
+                    return results
+                        .reduce(function (acc, result) {
+                            var key = [result.type, result.path, result.line, result.column].join(':');
 
-        Promise.all([cssResults, codeResults])
-            .then(flatten)
-            .then(function (results) {
-                return Object.keys(checksConfig).map(function (checkName) {
-                    var check = checks[checkName],
-                        config = checksConfig[checkName];
+                            if (!acc[key]) {
+                                acc[key] = {
+                                    type: result.type,
+                                    path: result.path,
+                                    line: result.line,
+                                    column: result.column,
+                                    errors: [],
+                                    errorsTags: []
+                                };
+                            }
 
-                    return check(results, config);
-                });
-            })
-            .then(flatten)
-            .then(function (results) {
-                return results
-                    .reduce(function (acc, result) {
-                        var key = [result.type, result.path, result.line, result.column].join(':');
+                            acc[key].errors = acc[key].errors.concat(result.errors);
+                            acc[key].errors = uniqueArray(acc[key].errors);
 
-                        if (!acc[key]) {
-                            acc[key] = {
-                                type: result.type,
-                                path: result.path,
-                                line: result.line,
-                                column: result.column,
-                                errors: [],
-                                errorsTags: []
-                            };
-                        }
+                            acc[key].errorsTags = acc[key].errorsTags.concat(result.errorsTags);
+                            acc[key].errorsTags = uniqueArray(acc[key].errorsTags);
 
-                        acc[key].errors = acc[key].errors.concat(result.errors);
-                        acc[key].errors = uniqueArray(acc[key].errors);
+                            return acc;
+                        }, {});
+                })
+                .then(objectValues)
+                .then(function (results) {
+                    if (self.data.options.checkstyle) {
+                        grunt.file.write(self.data.options.checkstyle, reporters.checkstyle(results));
+                    }
+                    /*if (self.data.options.plaintext) {
+                     grunt.file.write(self.data.options.plaintext, reporters.plaintext(results));
+                     }
+                     if (self.data.options.json) {
+                     grunt.file.write(self.data.options.json, reporters.json(results));
+                     }
+                     if (self.data.options.html) {
+                     grunt.file.write(self.data.options.html, reporters.html(results));
+                     }*/
 
-                        acc[key].errorsTags = acc[key].errorsTags.concat(result.errorsTags);
-                        acc[key].errorsTags = uniqueArray(acc[key].errorsTags);
-
-                        return acc;
-                    }, {});
-            })
-            .then(objectValues)
-            .then(function (results) {
-                if (self.data.options.checkstyle) {
-                    grunt.file.write(self.data.options.checkstyle, reporters.checkstyle(results));
-                }
-                /*if (self.data.options.plaintext) {
-                    grunt.file.write(self.data.options.plaintext, reporters.plaintext(results));
-                }
-                if (self.data.options.json) {
-                    grunt.file.write(self.data.options.json, reporters.json(results));
-                }
-                if (self.data.options.html) {
-                    grunt.file.write(self.data.options.html, reporters.html(results));
-                }*/
-
-                done();
-            })
-            .done();
+                    done();
+                })
+                .done();
+        });
     });
 };
