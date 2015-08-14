@@ -27,10 +27,13 @@
     "test": "grunt test"
   },
   "dependencies": {
-    "css-parse": "~1.x.x",
-    "glob": "3.x.x || 4.x.x",
     "async": "0.2.x",
-    "handlebars": "2"
+    "css-parse": "~2.x.x",
+    "flatten": "0.0.1",
+    "glob": "3.x.x || 4.x.x",
+    "handlebars": "2",
+    "promise": "^7.0.4",
+    "xmlbuilder": "^2.6.4"
   },
   "devDependencies": {
     "grunt": "~0.4.2",

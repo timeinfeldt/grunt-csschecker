@@ -7,145 +7,129 @@
  */
 
 'use strict';
-var CSSChecker = require('../lib/parsers/csschecker'),
-    CodeChecker = require('../lib/parsers/codechecker'),
-    glob = require('glob'),
-    checks = require('../lib/checks/checks.js'),
+var cssCheckerParse = require('../lib/parsers/csschecker'),
+    codeCheckerParse = require('../lib/parsers/codechecker'),
+    Promise = require('promise'),
+    glob = Promise.denodeify(require('glob')),
     async = require('async'),
-    reporters = require('../lib/reporters'),
-    Collector = require('../lib/collectors/collector');
+    flatten = require('flatten'),
+    checks = require('../lib/checks/checks.js'),
+    reporters = require('../lib/reporters');
+
+function getCssResultsClassNames(results) {
+    return results
+        .filter(function (result) {
+            return result.type === 'class';
+        })
+        .map(function (result) {
+            return result.className;
+        });
+}
+
+function getFilesFromPath(patterns, options) {
+    if (!patterns) {
+        grunt.fail.warn('No source file paths found.');
+    }
+
+    return Promise.all(patterns.map(function (pattern) {
+        return glob(pattern, options);
+    }));
+}
+
+var uniqueArray = function (arr) {
+    return arr.filter(function(elem, pos) {
+        return arr.indexOf(elem) == pos;
+    });
+};
+
+var objectValues = function (obj) {
+    var vals = [];
+    for (var key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            vals.push(obj[key]);
+        }
+    }
+    return vals;
+};
 
 module.exports = function (grunt) {
-
     grunt.registerMultiTask('csschecker', 'Checks your CSS', function () {
         var done = this.async(),
             checksConfig = this.data.checks,
-            data = {
-                selectors: {},
-                classes: {},
-                declarations: {}
-            },
-            self = this,
-            collector = new Collector(data);
+            self = this;
 
-        function getFilesFromPath(patterns, callback, options) {
-            if (!patterns) {
-                grunt.fail.warn('No source file paths found.');
-            }
-            var filesToBeAnalysed = [];
-            async.eachSeries(patterns, function (f, next) {
-                glob(f, options, function (er, files) {
-                    if (files.length === 0) {
-                        grunt.fail.warn('No files matching "' + f + '" found.');
-                    }
-                    for (var j = 0; j < files.length; j++) {
-                        if (filesToBeAnalysed.indexOf(files[j]) < 0) {
-                            filesToBeAnalysed.push(files[j]);
-                        }
-                    }
-                    next();
-                });
-            }, function () {
-                callback(filesToBeAnalysed);
-            });
-        }
+        var cssResults = getFilesFromPath(this.data.cssSrc)
+            .then(flatten)
+            .then(function (paths) {
+                return Promise.all(paths.map(cssCheckerParse));
+            })
+            .then(flatten);
 
-        function runChecks() {
-            var report = {
-                types: {}
-            };
-
-            grunt.log.subhead('Running checks on collected data');
-
-            for (var type in checksConfig) {
-                if (!data.hasOwnProperty(type)) {
-                    grunt.fail.warn('No data for ' + type + ' checks.');
-                }
-
-                var checkGroupData = data[type];
-
-                report.types[type] = {};
-
-                for (var check in checksConfig[type]) {
-                    if (checks.hasOwnProperty(check)) {
-                        grunt.log.verbose.write(check + '...');
-                        report.types[type][check] = [];
-                        for (var key in checkGroupData) {
-                            var d = checkGroupData[key],
-                                opts = checksConfig[type][check].options,
-                                result = checks[check](d, opts);
-
-                            if (result) {
-                                report.types[type][check].push({
-                                    message: result
-                                });
-                            }
-                        }
-                        grunt.log.verbose.ok();
-                    } else {
-                        grunt.log.error('Check ' + check + ' not found, skipping.');
-                    }
-                }
-            }
-
-            grunt.log.subhead('Creating reports');
-
-            if (self.data.options.checkstyle) {
-                grunt.file.write(self.data.options.checkstyle, reporters.checkstyle(report));
-            }
-            if (self.data.options.plaintext) {
-                grunt.file.write(self.data.options.plaintext, reporters.plaintext(report));
-            }
-            if (self.data.options.json) {
-                grunt.file.write(self.data.options.json, reporters.json(data));
-            }
-            if (self.data.options.html) {
-                grunt.file.write(self.data.options.html, reporters.html(data, report));
-            }
-        }
-
-        function analyseFiles(files, Analyser, callback) {
-            grunt.log.subhead('Running ' + Analyser.name + ' (' + files.length + ' files)');
-            var analyser = new Analyser();
-
-            files.forEach(function (path) {
-                if (!grunt.file.exists(path)) {
-                    grunt.log.warn('File "' + path + '" not found.');
-                    return;
-                }
-
-                grunt.log.verbose.write('Checking file: ' + path + '...');
-
-                analyser.run(path, collector, function () {
-                    grunt.log.verbose.ok();
-                });
-
+        var codeResults = cssResults
+            .then(getCssResultsClassNames)
+            .then(function (classNames) {
+                return getFilesFromPath(self.data.codeSrc)
+                    .then(flatten)
+                    .then(function (paths) {
+                        return Promise.all(paths.map(function (path) {
+                            return codeCheckerParse(path, classNames);
+                        }));
+                    });
             });
 
-            callback();
-        }
+        Promise.all([cssResults, codeResults])
+            .then(flatten)
+            .then(function (results) {
+                return Object.keys(checksConfig).map(function (checkName) {
+                    var check = checks[checkName],
+                        config = checksConfig[checkName];
 
-        function run() {
-            async.series([
-                    function (callback) {
-                        getFilesFromPath(self.data.cssSrc, function (files) {
-                            analyseFiles(files, CSSChecker, callback);
-                        });
-                    },
-                    function (callback) {
-                        getFilesFromPath(self.data.codeSrc, function (files) {
-                            analyseFiles(files, CodeChecker, callback);
-                        });
-                    }
-                ],
-                function (err) {
-                    if (!err) {
-                        runChecks();
-                        done();
-                    }
+                    return check(results, config);
                 });
-        }
+            })
+            .then(flatten)
+            .then(function (results) {
+                return results
+                    .reduce(function (acc, result) {
+                        var key = [result.type, result.path, result.line, result.column].join(':');
 
-        run();
+                        if (!acc[key]) {
+                            acc[key] = {
+                                type: result.type,
+                                path: result.path,
+                                line: result.line,
+                                column: result.column,
+                                errors: [],
+                                errorsTags: []
+                            };
+                        }
+
+                        acc[key].errors = acc[key].errors.concat(result.errors);
+                        acc[key].errors = uniqueArray(acc[key].errors);
+
+                        acc[key].errorsTags = acc[key].errorsTags.concat(result.errorsTags);
+                        acc[key].errorsTags = uniqueArray(acc[key].errorsTags);
+
+                        return acc;
+                    }, {});
+            })
+            .then(objectValues)
+            .then(function (results) {
+                if (self.data.options.checkstyle) {
+                    grunt.file.write(self.data.options.checkstyle, reporters.checkstyle(results));
+                }
+                /*if (self.data.options.plaintext) {
+                    grunt.file.write(self.data.options.plaintext, reporters.plaintext(results));
+                }
+                if (self.data.options.json) {
+                    grunt.file.write(self.data.options.json, reporters.json(results));
+                }
+                if (self.data.options.html) {
+                    grunt.file.write(self.data.options.html, reporters.html(results));
+                }*/
+
+                done();
+            })
+            .done();
     });
 };

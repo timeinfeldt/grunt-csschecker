@@ -10,7 +10,8 @@
 
 module.exports = function (grunt) {
 
-    // Project configuration.
+    grunt.option('stack', true);
+
     grunt.initConfig({
         csschecker : {
             dev : {
@@ -27,33 +28,20 @@ module.exports = function (grunt) {
                     'test/**/*.html'
                 ],
                 checks : {
-                    selectors : {
-                        selectorLengthCheck : {
-                            options : {
-                                maxLength : 4
-                            }
-                        }
+                    selectorLengthCheck : {
+                        maxLength : 4
                     },
-                    classes : {
-                        classUsageCheck : {
-                            options : {
-                                reportAll : false,
-                                minUsage : 3
-                            }
-                        },
-                        classNoUsageCheck : {
-                            options : {}
-                        }
+                    classUsageCheck : {
+                        reportAll : false,
+                        minUsage : 3
                     },
-                    declarations : {
-                        declarationsDefinitionsCheck : {
-                            options : {
-                                whiteList : [
-                                    'background',
-                                    'color'
-                                ]
-                            }
-                        }
+                    classNoUsageCheck : {
+                    },
+                    declarationsDefinitionsCheck : {
+                        whiteList : [
+                            'background',
+                            'color'
+                        ]
                     }
                 }
             }
