@@ -16,6 +16,20 @@ var cssCheckerParse = require('../lib/parsers/csschecker'),
     checks = require('../lib/checks/checks.js'),
     reporters = require('../lib/reporters');
 
+function reduce(promises, fn, initialValue) {
+    var acc = initialValue;
+    promises.forEach(function (promise) {
+        promise.then(function (value) {
+            acc = fn(acc, value);
+        });
+    });
+    return Promise
+        .all(promises)
+        .then(function () {
+            return acc;
+        });
+}
+
 function getCssResultsClassNames(results) {
     return results
         .filter(function (result) {
@@ -82,11 +96,13 @@ module.exports = function (grunt) {
                     return getFilesFromPath(self.data.codeSrc)
                         .then(flatten)
                         .then(function (paths) {
-                            return Promise.all(paths.map(function (path) {
+                            var promises = paths.map(function (path) {
                                 return codeCheckerParse(path, classNames);
-                            }));
-                        })
-                        .then(mergeClassCounts);
+                            });
+                            return reduce(promises, function(acc, value) {
+                                return mergeClassCounts([acc, value]);
+                            }, {});
+                        });
                 })
                 .then(function (classCounts) {
                     return Object.keys(checksConfig).map(function (checkName) {
