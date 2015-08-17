@@ -52,6 +52,17 @@ var objectValues = function (obj) {
     return vals;
 };
 
+var mergeClassCounts = function (classCountsList) {
+    var merged = {};
+    classCountsList.forEach(function (classCounts) {
+        Object.keys(classCounts).forEach(function (key) {
+            merged[key] = merged[key] || 0;
+            merged[key] += classCounts[key];
+        });
+    });
+    return merged;
+};
+
 module.exports = function (grunt) {
     grunt.registerMultiTask('csschecker', 'Checks your CSS', function () {
         var done = this.async(),
@@ -74,7 +85,8 @@ module.exports = function (grunt) {
                             return Promise.all(paths.map(function (path) {
                                 return codeCheckerParse(path, classNames);
                             }));
-                        });
+                        })
+                        .then(mergeClassCounts);
                 })
                 .then(function (classCounts) {
                     return Object.keys(checksConfig).map(function (checkName) {
