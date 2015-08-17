@@ -21,11 +21,11 @@ module.exports = function (grunt) {
                     checkstyle : 'out/checkstyle.xml',
                     html : 'out/report.html'
                 },
-                cssSrc : [
-                    'test/**/*.css'
+                cssSrc: [
+                    '/Users/igor/community/webroot/styles/**/*.css'
                 ],
-                codeSrc : [
-                    'test/**/*.html'
+                codeSrc: [
+                    '/Users/igor/community/src/modules/**/*.html'
                 ],
                 checks : {
                     selectorLengthCheck : {
