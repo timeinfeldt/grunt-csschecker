@@ -96,16 +96,12 @@ module.exports = function (grunt) {
                                     path: result.path,
                                     line: result.line,
                                     column: result.column,
-                                    errors: [],
-                                    errorsTags: []
+                                    errors: []
                                 };
                             }
 
                             acc[key].errors = acc[key].errors.concat(result.errors);
                             acc[key].errors = uniqueArray(acc[key].errors);
-
-                            acc[key].errorsTags = acc[key].errorsTags.concat(result.errorsTags);
-                            acc[key].errorsTags = uniqueArray(acc[key].errorsTags);
 
                             return acc;
                         }, {});
