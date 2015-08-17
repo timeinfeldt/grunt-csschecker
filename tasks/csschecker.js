@@ -17,6 +17,8 @@ var cssCheckerParse = require('../lib/parsers/csschecker'),
     checks = require('../lib/checks/checks.js'),
     reporters = require('../lib/reporters');
 
+Queue.configure(Promise);
+
 function reduce(promises, fn, initialValue) {
     var acc = initialValue;
     promises.forEach(function (promise) {
