@@ -10,6 +10,7 @@
 var cssCheckerParse = require('../lib/parsers/csschecker'),
     codeCheckerParse = require('../lib/parsers/codechecker'),
     Promise = require('promise'),
+    Queue = require('promise-queue'),
     glob = Promise.denodeify(require('glob')),
     async = require('async'),
     flatten = require('flatten'),
@@ -96,8 +97,11 @@ module.exports = function (grunt) {
                     return getFilesFromPath(self.data.codeSrc)
                         .then(flatten)
                         .then(function (paths) {
+                            var queue = new Queue(50, Infinity);
                             var promises = paths.map(function (path) {
-                                return codeCheckerParse(path, classNames);
+                                return queue.add(function () {
+                                    return codeCheckerParse(path, classNames);
+                                });
                             });
                             return reduce(promises, function(acc, value) {
                                 return mergeClassCounts([acc, value]);
