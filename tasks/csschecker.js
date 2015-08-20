@@ -15,7 +15,10 @@ var cssCheckerParse = require('../lib/parsers/csschecker'),
     async = require('async'),
     flatten = require('flatten'),
     checks = require('../lib/checks/checks.js'),
-    reporters = require('../lib/reporters');
+    reporters = require('../lib/reporters'),
+    sourceMap = require('source-map'),
+    fs = require('fs'),
+    path = require('path');
 
 Queue.configure(Promise);
 
@@ -69,6 +72,13 @@ var objectValues = function (obj) {
     return vals;
 };
 
+function objectCombine(keys, values) {
+    var result = {};
+    for (var i = 0; i < keys.length; i++)
+        result[keys[i]] = values[i];
+    return result;
+}
+
 var mergeClassCounts = function (classCountsList) {
     var merged = {};
     classCountsList.forEach(function (classCounts) {
@@ -80,6 +90,59 @@ var mergeClassCounts = function (classCountsList) {
     return merged;
 };
 
+function loadSourceMap(file) {
+    var readFile = Promise.denodeify(fs.readFile);
+
+    return readFile(file + '.map', 'utf8')
+        .then(function (contents) {
+            var rawSourceMap = JSON.parse(contents);
+            rawSourceMap.sourceRoot = path.dirname(file);
+            return new sourceMap.SourceMapConsumer(rawSourceMap);
+        }, function (err) {
+            if (err.code === 'ENOENT') {
+                return null;
+            }
+            return Promise.reject(err);
+        });
+}
+
+function resolveSourceMaps(results) {
+    var cssFiles = results
+        .map(function (result) { return result.file })
+        .filter(function (file) { return file.match(/\.css$/); });
+    cssFiles = uniqueArray(cssFiles);
+
+    var queue = new Queue(50, Infinity);
+    var promises = cssFiles.map(function (file) {
+        return queue.add(function () {
+            return loadSourceMap(file);
+        });
+    });
+    return Promise.all(promises)
+        .then(function (sourceMaps) {
+            var sourceMapsByCssFile = objectCombine(cssFiles, sourceMaps);
+
+            return results.map(function (result) {
+                var consumer = sourceMapsByCssFile[result.file];
+
+                if (!consumer) {
+                    return result;
+                }
+
+                var position = consumer.originalPositionFor({
+                    line: result.line,
+                    column: result.column
+                });
+
+                result.file = position.source;
+                result.line = position.line;
+                result.column = position.column;
+
+                return result;
+            });
+        });
+}
+
 module.exports = function (grunt) {
     grunt.registerMultiTask('csschecker', 'Checks your CSS', function () {
         var done = this.async(),
@@ -88,8 +151,8 @@ module.exports = function (grunt) {
 
         var cssResults = getFilesFromPath(this.data.cssSrc)
             .then(flatten)
-            .then(function (paths) {
-                return Promise.all(paths.map(cssCheckerParse));
+            .then(function (files) {
+                return Promise.all(files.map(cssCheckerParse));
             })
             .then(flatten);
 
@@ -98,11 +161,11 @@ module.exports = function (grunt) {
                 .then(function (classNames) {
                     return getFilesFromPath(self.data.codeSrc)
                         .then(flatten)
-                        .then(function (paths) {
+                        .then(function (files) {
                             var queue = new Queue(50, Infinity);
-                            var promises = paths.map(function (path) {
+                            var promises = files.map(function (file) {
                                 return queue.add(function () {
-                                    return codeCheckerParse(path, classNames);
+                                    return codeCheckerParse(file, classNames);
                                 });
                             });
                             return reduce(promises, function(acc, value) {
@@ -122,12 +185,12 @@ module.exports = function (grunt) {
                 .then(function (results) {
                     return results
                         .reduce(function (acc, result) {
-                            var key = [result.type, result.path, result.line, result.column].join(':');
+                            var key = [result.type, result.file, result.line, result.column].join(':');
 
                             if (!acc[key]) {
                                 acc[key] = {
                                     type: result.type,
-                                    path: result.path,
+                                    file: result.file,
                                     line: result.line,
                                     column: result.column,
                                     errors: []
@@ -141,6 +204,7 @@ module.exports = function (grunt) {
                         }, {});
                 })
                 .then(objectValues)
+                .then(resolveSourceMaps)
                 .then(function (results) {
                     if (self.data.options.checkstyle) {
                         grunt.file.write(self.data.options.checkstyle, reporters.checkstyle(results));
