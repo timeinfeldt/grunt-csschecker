@@ -16,10 +16,7 @@ module.exports = function (grunt) {
         csschecker : {
             dev : {
                 options : {
-                    json : 'out/report.json',
-                    plaintext : 'out/report.txt',
-                    checkstyle : 'out/checkstyle.xml',
-                    html : 'out/report.html'
+                    checkstyle : 'out/checkstyle.xml'
                 },
                 cssSrc : [
                     'test/**/*.css'

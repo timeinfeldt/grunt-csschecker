@@ -158,7 +158,7 @@ module.exports = function (grunt) {
                     return getFilesFromPath(self.data.codeSrc)
                         .then(flatten)
                         .then(function (files) {
-                            var promises = mapQueued(50, files, function () {
+                            var promises = mapQueued(50, files, function (file) {
                                 return codeCheckerParse(file, classNames);
                             });
                             return reduce(promises, function(acc, value) {
@@ -180,15 +180,6 @@ module.exports = function (grunt) {
                     if (self.data.options.checkstyle) {
                         grunt.file.write(self.data.options.checkstyle, reporters.checkstyle(results));
                     }
-                    /*if (self.data.options.plaintext) {
-                     grunt.file.write(self.data.options.plaintext, reporters.plaintext(results));
-                     }
-                     if (self.data.options.json) {
-                     grunt.file.write(self.data.options.json, reporters.json(results));
-                     }
-                     if (self.data.options.html) {
-                     grunt.file.write(self.data.options.html, reporters.html(results));
-                     }*/
 
                     done();
                 })

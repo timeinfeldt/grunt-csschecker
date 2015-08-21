@@ -31,7 +31,6 @@
     "css-parse": "~2.x.x",
     "flatten": "0.0.1",
     "glob": "3.x.x || 4.x.x",
-    "handlebars": "2",
     "promise": "^7.0.4",
     "promise-queue": "^2.1.1",
     "source-map": "^0.4.4"
