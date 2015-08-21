@@ -62,16 +62,6 @@ var uniqueArray = function (arr) {
     });
 };
 
-var objectValues = function (obj) {
-    var vals = [];
-    for (var key in obj) {
-        if (obj.hasOwnProperty(key)) {
-            vals.push(obj[key]);
-        }
-    }
-    return vals;
-};
-
 function objectCombine(keys, values) {
     var result = {};
     for (var i = 0; i < keys.length; i++)
@@ -185,28 +175,6 @@ module.exports = function (grunt) {
                     });
                 })
                 .then(flatten)
-                .then(function (results) {
-                    return results
-                        .reduce(function (acc, result) {
-                            var key = [result.type, result.file, result.line, result.column].join(':');
-
-                            if (!acc[key]) {
-                                acc[key] = {
-                                    type: result.type,
-                                    file: result.file,
-                                    line: result.line,
-                                    column: result.column,
-                                    errors: []
-                                };
-                            }
-
-                            acc[key].errors = acc[key].errors.concat(result.errors);
-                            acc[key].errors = uniqueArray(acc[key].errors);
-
-                            return acc;
-                        }, {});
-                })
-                .then(objectValues)
                 .then(resolveSourceMaps)
                 .then(function (results) {
                     if (self.data.options.checkstyle) {
