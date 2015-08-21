@@ -112,12 +112,8 @@ function resolveSourceMaps(results) {
         .filter(function (file) { return file.match(/\.css$/); });
     cssFiles = uniqueArray(cssFiles);
 
-    var queue = new Queue(50, Infinity);
-    var promises = cssFiles.map(function (file) {
-        return queue.add(function () {
-            return loadSourceMap(file);
-        });
-    });
+    var promises = mapQueued(50, cssFiles, loadSourceMap);
+
     return Promise.all(promises)
         .then(function (sourceMaps) {
             var sourceMapsByCssFile = objectCombine(cssFiles, sourceMaps);
@@ -143,6 +139,16 @@ function resolveSourceMaps(results) {
         });
 }
 
+function mapQueued(numConcurrent, keys, fn) {
+    var queue = new Queue(numConcurrent, Infinity);
+    var promises = keys.map(function (key) {
+        return queue.add(function () {
+            return fn(key);
+        });
+    });
+    return promises;
+}
+
 module.exports = function (grunt) {
     grunt.registerMultiTask('csschecker', 'Checks your CSS', function () {
         var done = this.async(),
@@ -162,11 +168,8 @@ module.exports = function (grunt) {
                     return getFilesFromPath(self.data.codeSrc)
                         .then(flatten)
                         .then(function (files) {
-                            var queue = new Queue(50, Infinity);
-                            var promises = files.map(function (file) {
-                                return queue.add(function () {
-                                    return codeCheckerParse(file, classNames);
-                                });
+                            var promises = mapQueued(50, files, function () {
+                                return codeCheckerParse(file, classNames);
                             });
                             return reduce(promises, function(acc, value) {
                                 return mergeClassCounts([acc, value]);
