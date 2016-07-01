@@ -5,22 +5,18 @@
  * Copyright (c) 2014-2016 Tim Einfeldt
  * Licensed under the MIT license.
  */
-/* global grunt */
+/* global grunt, Promise */
 'use strict';
 var cssCheckerParse = require('../lib/parsers/csschecker'),
     codeCheckerParse = require('../lib/parsers/codechecker'),
-    Promise = require('promise'),
     Queue = require('promise-queue'),
-    glob = Promise.denodeify(require('glob')),
-    async = require('async'),
+    glob = require('glob-promise'),
     flatten = require('flatten'),
     checks = require('../lib/checks/checks.js'),
     reporters = require('../lib/reporters'),
     sourceMap = require('source-map'),
     fs = require('fs'),
     path = require('path');
-
-Queue.configure(Promise);
 
 function reduce(promises, fn, initialValue) {
     var acc = initialValue;
@@ -46,13 +42,13 @@ function getCssResultsClassNames(results) {
         });
 }
 
-function getFilesFromPath(patterns, options) {
+function getFilesFromPath(patterns) {
     if (!patterns) {
         grunt.fail.warn('No source file paths found.');
     }
 
     return Promise.all(patterns.map(function (pattern) {
-        return glob(pattern, options);
+        return glob(pattern);
     }));
 }
 
@@ -82,19 +78,19 @@ var mergeClassCounts = function (classCountsList) {
 };
 
 function loadSourceMap(file) {
-    var readFile = Promise.denodeify(fs.readFile);
-
-    return readFile(file + '.map', 'utf8')
-        .then(function (contents) {
-            var rawSourceMap = JSON.parse(contents);
-            rawSourceMap.sourceRoot = path.dirname(file);
-            return new sourceMap.SourceMapConsumer(rawSourceMap);
-        }, function (err) {
-            if (err.code === 'ENOENT') {
-                return null;
-            }
-            return Promise.reject(err);
-        });
+    return new Promise(function(resolve, reject) { 
+        fs.readFile(file + '.map', 'utf8', (err, content) => { err ? reject(err) : resolve(content); }); 
+    })
+    .then(function (contents) {
+        var rawSourceMap = JSON.parse(contents);
+        rawSourceMap.sourceRoot = path.dirname(file);
+        return new sourceMap.SourceMapConsumer(rawSourceMap);
+    }, function (err) {
+        if (err.code === 'ENOENT') {
+            return null;
+        }
+        return Promise.reject(err);
+    });
 }
 
 function mapQueued(numConcurrent, keys, fn) {
@@ -176,15 +172,15 @@ module.exports = function (grunt) {
                     });
                 })
                 .then(flatten)
-                .then(resolveSourceMaps)
                 .then(function (results) {
-                    if (self.data.options.checkstyle) {
-                        grunt.file.write(self.data.options.checkstyle, reporters.checkstyle(results));
-                    }
+                    resolveSourceMaps(results).then(function (innerResults) {
+                        if (self.data.options.checkstyle) {
+                            grunt.file.write(self.data.options.checkstyle, reporters.checkstyle(results));
+                        }
 
-                    done();
-                })
-                .done();
+                        done();
+                    });
+                });
         });
     });
 };

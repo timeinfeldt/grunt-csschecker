@@ -1,11 +1,3 @@
-/*
- * grunt-csschecker
- * https://github.com/timeinfeldt/grunt-csschecker
- *
- * Copyright (c) 2014 Tim Einfeldt
- * Licensed under the MIT license.
- */
-
 'use strict';
 
 module.exports = function (grunt) {

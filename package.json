@@ -14,21 +14,21 @@
   "bugs": {
     "url": "https://github.com/timeinfeldt/grunt-csschecker/issues"
   },
-  "license" : "MIT",
+  "license": "MIT",
   "engines": {
-    "node": ">= 0.8.0"
+    "node": ">= 4.0.0"
   },
   "scripts": {
     "test": "grunt test"
   },
   "dependencies": {
-    "async": "0.2.x",
-    "css-parse": "~2.x.x",
-    "flatten": "0.0.1",
-    "glob": "3.x.x || 4.x.x",
+    "css-parse": "^2.0.0",
+    "flatten": "^1.0.2",
+    "glob": "^7.0.5",
+    "glob-promise": "^1.0.6",
     "promise": "^7.0.4",
     "promise-queue": "^2.1.1",
-    "source-map": "^0.4.4"
+    "source-map": "^0.5.6"
   },
   "devDependencies": {
     "grunt": "^1.0.0",
