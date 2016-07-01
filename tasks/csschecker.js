@@ -2,10 +2,10 @@
  * grunt-csschecker
  * https://github.com/timeinfeldt/grunt-csschecker
  *
- * Copyright (c) 2014 Tim Einfeldt
+ * Copyright (c) 2014-2016 Tim Einfeldt
  * Licensed under the MIT license.
  */
-
+/* global grunt */
 'use strict';
 var cssCheckerParse = require('../lib/parsers/csschecker'),
     codeCheckerParse = require('../lib/parsers/codechecker'),
@@ -58,14 +58,15 @@ function getFilesFromPath(patterns, options) {
 
 var uniqueArray = function (arr) {
     return arr.filter(function(elem, pos) {
-        return arr.indexOf(elem) == pos;
+        return arr.indexOf(elem) === pos;
     });
 };
 
 function objectCombine(keys, values) {
     var result = {};
-    for (var i = 0; i < keys.length; i++)
+    for (var i = 0; i < keys.length; i++) {
         result[keys[i]] = values[i];
+    }
     return result;
 }
 
@@ -96,9 +97,19 @@ function loadSourceMap(file) {
         });
 }
 
+function mapQueued(numConcurrent, keys, fn) {
+    var queue = new Queue(numConcurrent, Infinity);
+    var promises = keys.map(function (key) {
+        return queue.add(function () {
+            return fn(key);
+        });
+    });
+    return promises;
+}
+
 function resolveSourceMaps(results) {
     var cssFiles = results
-        .map(function (result) { return result.file })
+        .map(function (result) { return result.file; })
         .filter(function (file) { return file.match(/\.css$/); });
     cssFiles = uniqueArray(cssFiles);
 
@@ -127,16 +138,6 @@ function resolveSourceMaps(results) {
                 return result;
             });
         });
-}
-
-function mapQueued(numConcurrent, keys, fn) {
-    var queue = new Queue(numConcurrent, Infinity);
-    var promises = keys.map(function (key) {
-        return queue.add(function () {
-            return fn(key);
-        });
-    });
-    return promises;
 }
 
 module.exports = function (grunt) {
