@@ -19,20 +19,22 @@
     "node": ">= 4.0.0"
   },
   "scripts": {
-    "test": "grunt test"
+    "test": "grunt test",
+    "lint": "eslint lib/ tasks/ Gruntfile.js",
+    "preversion": "npm run lint && npm test"
   },
   "dependencies": {
     "css-parse": "^2.0.0",
     "flatten": "^1.0.2",
-    "glob": "^7.0.5",
     "glob-promise": "^1.0.6",
-    "promise": "^7.0.4",
     "promise-queue": "^2.1.1",
     "source-map": "^0.5.6"
   },
   "devDependencies": {
-    "grunt": "^1.0.0",
-    "grunt-contrib-jshint": "^1.0.0"
+    "eslint": "^2.13.1",
+    "eslint-config-airbnb-base": "^3.0.1",
+    "eslint-plugin-import": "^1.10.0",
+    "grunt": "^1.0.0"
   },
   "peerDependencies": {
     "grunt": ">=0.4.0"
